@@ -37,6 +37,7 @@ public sealed class TrackingClient(HttpClient http) : ITrackingClient
 
 public sealed class NotificationClient(HttpClient http) : INotificationClient
 {
-    public async Task<IReadOnlyList<NotificationDto>> GetNotificationsAsync(string orderId, CancellationToken ct) =>
+    public async Task<IReadOnlyList<NotificationDto>> GetNotificationsAsync(
+        string orderId, CancellationToken ct) =>
         await http.GetFromJsonAsync<List<NotificationDto>>($"notifications/{orderId}", ct) ?? [];
 }

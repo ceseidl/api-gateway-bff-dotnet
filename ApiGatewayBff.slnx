@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="Gateway/Gateway.csproj" />
   <Project Path="MobileBff/MobileBff.csproj" />
+  <Project Path="LocalStubs/LocalStubs.csproj" />
 </Solution>

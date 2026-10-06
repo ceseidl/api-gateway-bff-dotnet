@@ -56,6 +56,13 @@ jobs:
           echo "$body" | grep -F '"notifications"'
           test "$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOKEN" http://localhost:5000/mobile/order/404)" = "404"
 
+          # EN: Partial failure: tracking hangs, the order still comes back (takes ~30 s: resilience timeout).
+          # PT: Falha parcial: o tracking trava, o pedido ainda volta (leva ~30 s: timeout da resiliência).
+          slow=$(curl -sf -m 90 -H "Authorization: Bearer $TOKEN" http://localhost:5000/mobile/order/slow)
+          echo "$slow"
+          echo "$slow" | grep -F '"tracking":null'
+          echo "$slow" | grep -F '"notifications":[{'
+
       - name: Service logs
         if: always()
         run: tail -n 40 stubs.log bff.log gateway.log || true

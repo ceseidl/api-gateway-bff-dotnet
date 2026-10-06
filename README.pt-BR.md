@@ -80,6 +80,8 @@ curl -i -H "Authorization: Bearer $TOKEN" http://localhost:5000/mobile/order/404
 
 Resultados esperados: `401` sem token, `200` com o pedido agregado (pedido, rastreio e notificações) e `404` para o pedido `404`.
 
+Para ver o tratamento de **falha parcial**, chame `/mobile/order/slow`: o serviço falso de Rastreio nunca responde e, depois do timeout de resiliência (cerca de 30 s), o BFF ainda devolve `200` com o pedido e as notificações, e `"tracking": null`.
+
 **Observações**
 
 - A chave de assinatura em `LocalStubs/Program.cs` e no comando acima é pública e descartável. Nunca a reutilize.

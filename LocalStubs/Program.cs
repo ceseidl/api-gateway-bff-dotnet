@@ -24,8 +24,15 @@ app.MapGet("/orders/{id}", (string id) =>
         ? Results.NotFound()
         : Results.Ok(new { id, status = "Paid", total = 120.50m }));
 
-app.MapGet("/tracking/{id}", (string id) =>
-    Results.Ok(new { status = "InTransit", location = "Curitiba" }));
+// EN: The id "slow" never answers: it exercises the BFF timeout handling (partial failure).
+// PT: O id "slow" nunca responde: exercita o tratamento de timeout do BFF (falha parcial).
+app.MapGet("/tracking/{id}", async (string id, CancellationToken ct) =>
+{
+    if (id == "slow")
+        await Task.Delay(Timeout.Infinite, ct);
+
+    return Results.Ok(new { status = "InTransit", location = "Curitiba" });
+});
 
 app.MapGet("/notifications/{id}", (string id) =>
     Results.Ok(new[] { new { text = "Order paid / Pedido pago" } }));

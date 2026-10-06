@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build
+        run: dotnet build --nologo
+
+      - name: Smoke test (Gateway -> MobileBff -> LocalStubs)
+        run: |
+          KEY=$(grep -oP 'DevSigningKey = "\K[^"]+' LocalStubs/Program.cs)
+          dotnet run --no-build --project LocalStubs --urls http://localhost:5100 > stubs.log 2>&1 &
+          dotnet run --no-build --project MobileBff --urls http://localhost:5200 -- \
+            --Services:Order=http://localhost:5100/ \
+            --Services:Tracking=http://localhost:5100/ \
+            --Services:Notification=http://localhost:5100/ > bff.log 2>&1 &
+          dotnet run --no-build --project Gateway --urls http://localhost:5000 -- \
+            --ReverseProxy:Clusters:mobile-bff:Destinations:d1:Address=http://localhost:5200/ \
+            --ReverseProxy:Clusters:mobile-bff:Destinations:d2:Address=http://localhost:5200/ \
+            --Authentication:Schemes:Bearer:ValidIssuer=local-stubs \
+            --Authentication:Schemes:Bearer:ValidAudiences:0=gateway-local \
+            --Authentication:Schemes:Bearer:SigningKeys:0:Issuer=local-stubs \
+            --Authentication:Schemes:Bearer:SigningKeys:0:Value="$KEY" \
+            --Authentication:Schemes:Bearer:SigningKeys:0:Length=256 > gateway.log 2>&1 &
+
+          curl -sf --retry 30 --retry-connrefused --retry-delay 1 -o /dev/null http://localhost:5100/health
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5000/mobile/order/1 || true)
+            [ "$code" = "401" ] && break
+            sleep 1
+          done
+
+          TOKEN=$(curl -sf http://localhost:5100/token)
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5000/mobile/order/1)" = "401"
+          body=$(curl -sf -H "Authorization: Bearer $TOKEN" http://localhost:5000/mobile/order/1)
+          echo "$body"
+          echo "$body" | grep -F '"order"'
+          echo "$body" | grep -F '"tracking"'
+          echo "$body" | grep -F '"notifications"'
+          test "$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOKEN" http://localhost:5000/mobile/order/404)" = "404"
+
+      - name: Service logs
+        if: always()
+        run: tail -n 40 stubs.log bff.log gateway.log || true

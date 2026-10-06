@@ -1,5 +1,7 @@
 [English](README.md) | Português
 
+[![CI](https://github.com/ceseidl/api-gateway-bff-dotnet/actions/workflows/ci.yml/badge.svg)](https://github.com/ceseidl/api-gateway-bff-dotnet/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 # api-gateway-bff-dotnet
 
 > **Início rápido**

@@ -62,11 +62,9 @@ dotnet run --project MobileBff --urls http://localhost:5200 -- \
 dotnet run --project Gateway --urls http://localhost:5000 -- \
   --ReverseProxy:Clusters:mobile-bff:Destinations:d1:Address=http://localhost:5200/ \
   --ReverseProxy:Clusters:mobile-bff:Destinations:d2:Address=http://localhost:5200/ \
-  --Authentication:Schemes:Bearer:ValidIssuer=local-stubs \
-  --Authentication:Schemes:Bearer:ValidAudiences:0=gateway-local \
-  --Authentication:Schemes:Bearer:SigningKeys:0:Issuer=local-stubs \
-  --Authentication:Schemes:Bearer:SigningKeys:0:Value=jR+Qxbo6tCH2VRzOvOEs5mV04l4QqKPBGrG2UMJguA8= \
-  --Authentication:Schemes:Bearer:SigningKeys:0:Length=256
+  --Authentication:Schemes:Bearer:Authority=http://localhost:5100 \
+  --Authentication:Schemes:Bearer:RequireHttpsMetadata=false \
+  --Authentication:Schemes:Bearer:ValidAudiences:0=gateway-local
 ```
 
 **4. Chame a API**
@@ -84,7 +82,7 @@ Para ver o tratamento de **falha parcial**, chame `/mobile/order/slow`: o servi�
 
 **Observações**
 
-- A chave de assinatura em `LocalStubs/Program.cs` e no comando acima é pública e descartável. Nunca a reutilize.
+- Não há chave fixa: o LocalStubs gera um novo par de chaves RSA a cada execução e o Gateway só busca a chave pública (`/jwks`, pelo discovery do OpenID Connect), como faria com um provedor de identidade real. Se reiniciar o LocalStubs, reinicie o Gateway também. O `RequireHttpsMetadata=false` é só para este cenário local em HTTP; nunca use em produção.
 - Em um ambiente real, defina essas mesmas configurações (`Authentication:Schemes:Bearer:*`) por configuração, com a authority ou a chave de assinatura do seu provedor de identidade. A rota `web` precisa de um `web-bff`, que não faz parte deste repositório.
 - Se o `dotnet build` falhar por causa de um feed NuGet privado no seu `nuget.config` de usuário, acrescente `--source https://api.nuget.org/v3/index.json`.
 

@@ -25,7 +25,6 @@ jobs:
 
       - name: Smoke test (Gateway -> MobileBff -> LocalStubs)
         run: |
-          KEY=$(grep -oP 'DevSigningKey = "\K[^"]+' LocalStubs/Program.cs)
           dotnet run --no-build --project LocalStubs --urls http://localhost:5100 > stubs.log 2>&1 &
           dotnet run --no-build --project MobileBff --urls http://localhost:5200 -- \
             --Services:Order=http://localhost:5100/ \
@@ -34,11 +33,9 @@ jobs:
           dotnet run --no-build --project Gateway --urls http://localhost:5000 -- \
             --ReverseProxy:Clusters:mobile-bff:Destinations:d1:Address=http://localhost:5200/ \
             --ReverseProxy:Clusters:mobile-bff:Destinations:d2:Address=http://localhost:5200/ \
-            --Authentication:Schemes:Bearer:ValidIssuer=local-stubs \
-            --Authentication:Schemes:Bearer:ValidAudiences:0=gateway-local \
-            --Authentication:Schemes:Bearer:SigningKeys:0:Issuer=local-stubs \
-            --Authentication:Schemes:Bearer:SigningKeys:0:Value="$KEY" \
-            --Authentication:Schemes:Bearer:SigningKeys:0:Length=256 > gateway.log 2>&1 &
+            --Authentication:Schemes:Bearer:Authority=http://localhost:5100 \
+            --Authentication:Schemes:Bearer:RequireHttpsMetadata=false \
+            --Authentication:Schemes:Bearer:ValidAudiences:0=gateway-local > gateway.log 2>&1 &
 
           curl -sf --retry 30 --retry-connrefused --retry-delay 1 -o /dev/null http://localhost:5100/health
           for i in $(seq 1 30); do
@@ -49,6 +46,10 @@ jobs:
 
           TOKEN=$(curl -sf http://localhost:5100/token)
           test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5000/mobile/order/1)" = "401"
+          # EN: A token with a tampered signature must be rejected.
+          # PT: Um token com a assinatura adulterada precisa ser recusado.
+          BAD="${TOKEN%?}$([ "${TOKEN: -1}" = "A" ] && echo B || echo A)"
+          test "$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $BAD" http://localhost:5000/mobile/order/1)" = "401"
           body=$(curl -sf -H "Authorization: Bearer $TOKEN" http://localhost:5000/mobile/order/1)
           echo "$body"
           echo "$body" | grep -F '"order"'

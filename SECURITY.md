@@ -18,7 +18,7 @@ Please include what you found, how to reproduce it and, if possible, a suggested
 
 These are deliberate simplifications of a didactic example (the README lists the main ones):
 
-- The signing key in `LocalStubs/Program.cs` is public and throwaway, used on purpose so the example runs locally. Do not reuse it anywhere.
+- `LocalStubs` is a local-only fake identity provider: it generates a new key pair on every start (no key is stored in the repository), and the Gateway example turns off `RequireHttpsMetadata` to talk to it over HTTP. Do not copy that setting to a real deployment.
 
 Vulnerable dependencies are tracked with Dependabot; a pull request that bumps a package is welcome.
 
@@ -38,6 +38,6 @@ Informe o que encontrou, como reproduzir e, se possível, uma sugestão de corre
 
 São simplificações deliberadas de um exemplo didático (o README lista as principais):
 
-- A chave de assinatura em `LocalStubs/Program.cs` é pública e descartável, usada de propósito para o exemplo rodar localmente. Não a reutilize em lugar nenhum.
+- O `LocalStubs` é um provedor de identidade falso só para uso local: gera um novo par de chaves a cada execução (nenhuma chave fica guardada no repositório), e o exemplo do Gateway desliga o `RequireHttpsMetadata` para falar com ele por HTTP. Não copie essa configuração para um ambiente real.
 
 As dependências vulneráveis são acompanhadas pelo Dependabot; um pull request que atualiza um pacote é bem-vindo.

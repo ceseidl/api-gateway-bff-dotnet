@@ -24,7 +24,8 @@ public static class OrderEndpoints
         if (order is null)
             return Results.NotFound();
 
-        // Dados secundários: falha parcial não derruba a tela
+        // EN: Secondary data: a partial failure does not break the screen.
+        // PT: Dados secundários: falha parcial não derruba a tela.
         var trackingResult = await SafeAsync(
             trackingTask, logger, "tracking");
         var notificationsResult = await SafeAsync(
@@ -43,7 +44,7 @@ public static class OrderEndpoints
             ex is HttpRequestException or TaskCanceledException)
         {
             logger.LogWarning(ex,
-                "Falha parcial ao consultar {Source}", source);
+                "Partial failure querying / Falha parcial ao consultar {Source}", source);
             return default;
         }
     }

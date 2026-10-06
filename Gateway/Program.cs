@@ -37,7 +37,8 @@ builder.Services
         builder.Configuration.GetSection("ReverseProxy"))
     .AddTransforms(context =>
     {
-        // Só para rotas que exigem autenticação
+        // EN: Only for routes that require authentication.
+        // PT: Só para rotas que exigem autenticação.
         var policy = context.Route.AuthorizationPolicy;
         if (string.IsNullOrEmpty(policy))
             return;

@@ -80,6 +80,8 @@ curl -i -H "Authorization: Bearer $TOKEN" http://localhost:5000/mobile/order/404
 
 Expected results: `401` without a token, `200` with the aggregated order (order, tracking and notifications), and `404` for order `404`.
 
+To see the **partial failure** handling, call `/mobile/order/slow`: the fake Tracking service never answers, and after the resilience timeout (about 30 s) the BFF still returns `200` with the order and the notifications, and `"tracking": null`.
+
 **Notes**
 
 - The signing key in `LocalStubs/Program.cs` and in the command above is public and throwaway. Never reuse it.

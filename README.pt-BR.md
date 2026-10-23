@@ -4,6 +4,8 @@
 
 # api-gateway-bff-dotnet
 
+Artigo completo: <https://ceseidl.com.br/artigos/api-gateway-bff-dotnet/>
+
 > **Início rápido**
 
 ```bash

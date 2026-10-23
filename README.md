@@ -4,6 +4,8 @@ English | [Português](README.pt-BR.md)
 
 # api-gateway-bff-dotnet
 
+Full article: <https://ceseidl.com.br/en/artigos/api-gateway-bff-dotnet/>
+
 > **Quick start**
 
 ```bash
